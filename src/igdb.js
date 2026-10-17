@@ -10,9 +10,9 @@ async function postRequest(env, endpoint, content) {
 		{
 			method: "POST",
 			headers: {
-				'Accept': 'application/json',
-      	'Client-ID': env.igdbClientID,
-       	'Authorization': env.igdbToken,
+				"Accept": "application/json",
+      	"Client-ID": `${env.igdbClientID}`,
+       	"Authorization": `Bearer ${env.igdbToken}`,
 			},
 			body: content
 		}
@@ -70,21 +70,22 @@ async function getRandomGames(env) {
 		const MAX_OFFSET = 1500;
 		const query = baseQuery + `;limit 50; offset ${Math.floor(Math.random() * MAX_OFFSET)};`
 		const games = await postRequest(env, gamesEndpoint, query);
-		if (games.status !== 200) {
-			const msg = await idsResponse.text();
-			console.log(`[getRandomGames] Failed! Code: ${idsResponse.status}, msg: ${msg}`);
 
-			return ResponseError(500, "Server Error");
+		if (games.status !== 200) {
+			const msg = await games.text();
+			console.log(`[getRandomGames] Failed! Code: ${games.status}, msg: ${msg}`);
+			return ResponseError(games.status, "API Error");
 		}
 
 		const data = await games.json();
 		return ResponseSuccess(data);
-	} catch(_e) { return ResponseError(500, "Server Error") }
+	} catch (e) {
+		console.log(e);
+		return ResponseError(500, "Server Error")
+	}
 }
 
 async function processRequest(env, body) {
-	if (!body) return ResponseError(400, "Bad request");
-
 	const operation = body.operation;
 	if (typeof operation !== "string") return ResponseError(400, "Bad request");
 
