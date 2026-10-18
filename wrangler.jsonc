@@ -8,7 +8,7 @@
 	"main": "src/index.js",
 	"compatibility_date": "2026-10-06",
 	"observability": {
-		"enabled": true
+		"enabled": true,
 	},
 	"upload_source_maps": true,
 	"ratelimits": [
@@ -17,8 +17,11 @@
 			"namespace_id": "67",
 			"simple": {
 				"limit": 10,
-				"period": 60
-			}
-		}
-	]
+				"period": 60,
+			},
+		},
+	],
+	"vars": {
+		"igdb_feed_offset": "250",
+	},
 }

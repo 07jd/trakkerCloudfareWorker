@@ -67,8 +67,7 @@ async function searchByName(env, name) {
 
 async function getRandomGames(env) {
 	try {
-		const MAX_OFFSET = 1500;
-		const query = baseQuery + `;limit 50; offset ${Math.floor(Math.random() * MAX_OFFSET)};`
+		const query = baseQuery + `;limit 50; offset ${Math.floor(Math.random() * Number.parseInt(env.igdb_feed_offset, 10))};`
 		const games = await postRequest(env, gamesEndpoint, query);
 
 		if (games.status !== 200) {
