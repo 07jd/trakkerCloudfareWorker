@@ -80,7 +80,7 @@ async function getFeed(env) {
 
 		const gamesIDSjson = await gamesIDS.json();
 		const ids = gamesIDSjson.map(v => v.game_id);
-		const idsQuery = `${batchQuery} where id = (${ids.join(",")});`
+		const idsQuery = `${batchQuery} where id = (${ids.join(",")}); limit 150;`
 
 		const games = await postRequest(env, gamesEndpoint, idsQuery)
 		if(games.status !== 200) {
