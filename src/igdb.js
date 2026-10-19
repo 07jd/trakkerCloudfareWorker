@@ -6,7 +6,7 @@ const baseQuery     			= "fields name, summary, storyline, rating, game_type, ur
 const batchQuery    			= "fields name, summary, storyline, rating, game_type, url, platforms.abbreviation, first_release_date, cover.image_id, artworks.image_id, similar_games.name, similar_games.cover.image_id;";
 
 const popularityEndpoint 	= "https://api.igdb.com/v4/popularity_primitives"
-const popularityQuery 		= "fields game_id,value,popularity_type; sort value desc; limit 150; where popularity_type = 1;"
+const popularityQuery 		= "fields game_id,value,popularity_type; sort value desc; limit 150; where popularity_type = "
 
 async function postRequest(env, endpoint, content) {
 	return await fetch(
@@ -71,7 +71,7 @@ async function searchByName(env, name) {
 
 async function getFeed(env) {
 	try {
-		const gamesIDS = await postRequest(env, popularityEndpoint, popularityQuery)
+		const gamesIDS = await postRequest(env, popularityEndpoint, `${popularityQuery} ${env.igdbPopularityType};`)
 		if (gamesIDS.status !== 200) {
 			const msg = await gamesIDS.text();
 			console.log(`[getFeed] Failed, popularityEndpoint! Code: ${gamesIDS.status}, msg: ${msg}`);
@@ -79,8 +79,8 @@ async function getFeed(env) {
 		}
 
 		const gamesIDSjson = await gamesIDS.json();
-		const ids = gamesIDSjson.map(v => v.id);
-		const idsQuery = `${batchQuery}& id = (${ids.join(",")});`
+		const ids = gamesIDSjson.map(v => v.game_id);
+		const idsQuery = `${batchQuery} where id = (${ids.join(",")});`
 
 		const games = await postRequest(env, gamesEndpoint, idsQuery)
 		if(games.status !== 200) {

@@ -23,5 +23,6 @@
 	],
 	"vars": {
 		"igdb_feed_offset": "250",
+		"igdbPopularityType": 1
 	},
 }
