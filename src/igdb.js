@@ -1,8 +1,12 @@
 import { ResponseError, ResponseSuccess } from "./responses"
 export { processRequest }
 
-const gamesEndpoint = "https://api.igdb.com/v4/games"
-const baseQuery = "fields name, summary, storyline, rating, game_type, url, platforms.abbreviation, first_release_date, cover.image_id, artworks.image_id, similar_games.name, similar_games.cover.image_id;where version_parent = null & game_type = (0,1,2,4,8,9,10) ";
+const gamesEndpoint 			= "https://api.igdb.com/v4/games"
+const baseQuery     			= "fields name, summary, storyline, rating, game_type, url, platforms.abbreviation, first_release_date, cover.image_id, artworks.image_id, similar_games.name, similar_games.cover.image_id;where version_parent = null & game_type = (0,1,2,4,8,9,10) ";
+const batchQuery    			= "fields name, summary, storyline, rating, game_type, url, platforms.abbreviation, first_release_date, cover.image_id, artworks.image_id, similar_games.name, similar_games.cover.image_id;";
+
+const popularityEndpoint 	= "https://api.igdb.com/v4/popularity_primitives"
+const popularityQuery 		= "fields game_id,value,popularity_type; sort value desc; limit 150; where popularity_type = 1;"
 
 async function postRequest(env, endpoint, content) {
 	return await fetch(
@@ -65,14 +69,23 @@ async function searchByName(env, name) {
 	} catch (_e) { return ResponseError(500, "Server error") }
 }
 
-async function getRandomGames(env) {
+async function getFeed(env) {
 	try {
-		const query = baseQuery + `;limit 50; offset ${Math.floor(Math.random() * Number.parseInt(env.igdb_feed_offset, 10))};`
-		const games = await postRequest(env, gamesEndpoint, query);
+		const gamesIDS = await postRequest(env, popularityEndpoint, popularityQuery)
+		if (gamesIDS.status !== 200) {
+			const msg = await gamesIDS.text();
+			console.log(`[getFeed] Failed, popularityEndpoint! Code: ${gamesIDS.status}, msg: ${msg}`);
+			return ResponseError(gamesIDS.status, "API Error");
+		}
 
-		if (games.status !== 200) {
+		const gamesIDSjson = await gamesIDS.json();
+		const ids = gamesIDSjson.map(v => v.id);
+		const idsQuery = `${batchQuery}& id = (${ids.join(",")});`
+
+		const games = await postRequest(env, gamesEndpoint, idsQuery)
+		if(games.status !== 200) {
 			const msg = await games.text();
-			console.log(`[getRandomGames] Failed! Code: ${games.status}, msg: ${msg}`);
+			console.log(`[getFeed] Failed! Code: ${games.status}, msg: ${msg}`);
 			return ResponseError(games.status, "API Error");
 		}
 
@@ -94,7 +107,7 @@ async function processRequest(env, body) {
 		else
 			return await searchByName(env, body.name);
 	} else if (operation === "feed") {
-		return await getRandomGames(env);
+		return await getFeed(env);
 	} else {
 		return ResponseError(400, "Bad request");
 	}
