@@ -1,5 +1,4 @@
-export { searchTMDB, getFeed }
-
+export { searchTMDB, getTMDBfeed }
 import { ResponseError, ResponseSuccess } from "./responses"
 
 const searchMovieEndpoint 	= "https://api.themoviedb.org/3/search/movie"
@@ -63,7 +62,7 @@ async function searchTMDB(env, type, query, adult, page) {
 	}
 }
 
-async function getFeed(env, type, page) {
+async function getTMDBfeed(env, type, page) {
 	if (typeof type !== "string" || (type !== "show" && type !== "movie"))
 		return ResponseError(400, "Invalid type")
 

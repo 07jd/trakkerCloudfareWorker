@@ -31,6 +31,7 @@
 	],
 	"vars": {
 		"igdb_feed_offset": "250",
-		"igdbPopularityType": 1
+		"igdbPopularityType": 7,
+		"igdbPageSize": 150
 	},
 }
