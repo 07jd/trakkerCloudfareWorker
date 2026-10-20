@@ -20,6 +20,14 @@
 				"period": 60,
 			},
 		},
+		{
+			"name": "tmdb_rate_limiter",
+			"namespace_id": "67",
+			"simple": {
+				"limit": 10,
+				"period": 60
+			}
+		}
 	],
 	"vars": {
 		"igdb_feed_offset": "250",
