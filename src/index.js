@@ -1,11 +1,14 @@
 import { ResponseError } from "./responses.js";
 import { searchGames, getGamesFeed } from "./igdb.js"
-import { getTMDBfeed, searchTMDB } from "./tmdb.js";
+import { getTMDBfeed, searchTMDB, getTMDBgenres } from "./tmdb.js";
 
 export default {
 	async fetch(request, env, _ctx) {
-		if (request.method !== "POST") return ResponseError(404, "Not Found");
 		const { pathname } = new URL(request.url);
+		if (pathname === "/api/tmdb/genres" && request.method === "GET") return await getTMDBgenres(env)
+
+
+		if (request.method !== "POST") return ResponseError(404, "Not Found");
 
 		// Parse body
 		let body;

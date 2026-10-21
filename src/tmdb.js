@@ -1,10 +1,12 @@
-export { searchTMDB, getTMDBfeed }
+export { searchTMDB, getTMDBfeed, getTMDBgenres }
 import { ResponseError, ResponseSuccess } from "./responses"
 
 const searchMovieEndpoint 	= "https://api.themoviedb.org/3/search/movie"
 const searchShowEndpoint 		= "https://api.themoviedb.org/3/search/tv"
 const popularMovieEndpoint 	= "https://api.themoviedb.org/3/movie/popular"
 const popularShowEndpoint 	= "https://api.themoviedb.org/3/tv/popular"
+const tvGenres 							= "https://api.themoviedb.org/3/genre/tv/list?language=en"
+const movieGenres 					= "https://api.themoviedb.org/3/genre/movie/list?language=en"
 
 let token = null;
 
@@ -89,6 +91,41 @@ async function getTMDBfeed(env, type, page) {
 		return ResponseSuccess(data);
 	} catch (e) {
 		console.log(`[getFeed] Exception: ${e.message}`)
+		return ResponseError(500, "Server Error")
+	}
+}
+
+async function getTMDBgenres(env) {
+	token = env.tmdbToken;
+	try {
+		const mg = await getRequest(movieGenres);
+		const tg = await getRequest(tvGenres);
+
+		if (!mg.ok || !tg.ok) {
+			const msg_m = await mg.text();
+			const msg_t = await tg.text();
+
+			console.log("Responses not ok:");
+			console.log(`Movies, code: ${mg.status}, msg: ${msg_m}`)
+			console.log(`Shows, code: ${tg.status}, msg: ${msg_t}`)
+
+			return ResponseError(400, "API Error")
+		}
+
+		const data_movies = await mg.json();
+		const data_tv 		= await tg.json();
+
+		data_movies.movies = data_movies.genres;
+		data_tv.movies 		 = data_tv.genres;
+
+		const movies = data_movies.genres;
+		const tv 		 = data_tv.genres;
+		return ResponseSuccess({
+			movies,
+			tv
+		})
+	} catch (e) {
+		console.log("[getGenres] Failed to get genres")
 		return ResponseError(500, "Server Error")
 	}
 }
