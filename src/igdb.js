@@ -7,8 +7,8 @@ let pageSize 							= 150;
 let popularityType 				= 1;
 
 const gamesEndpoint 			= "https://api.igdb.com/v4/games"
-const baseQuery     			= "fields name, summary, storyline, rating, game_type, url, platforms.abbreviation, first_release_date, cover.image_id, artworks.image_id, similar_games.name, similar_games.cover.image_id;where version_parent = null & game_type = (0,1,2,4,8,9,10) ";
-const batchQuery    			= "fields name, summary, storyline, rating, game_type, url, platforms.abbreviation, first_release_date, cover.image_id, artworks.image_id, similar_games.name, similar_games.cover.image_id;sort rating desc;";
+const baseQuery     			= "fields name, summary, storyline, rating, game_type, url, platforms.abbreviation, first_release_date, cover.image_id, artworks.image_id, artworks.image_type.name, similar_games.name, similar_games.cover.image_id;where version_parent = null & game_type = (0,1,2,4,8,9,10) ";
+const batchQuery    			= "fields name, summary, storyline, rating, game_type, url, platforms.abbreviation, first_release_date, cover.image_id, artworks.image_id, artworks.image_type.name, similar_games.name, similar_games.cover.image_id;sort rating desc;";
 
 const popularityEndpoint 	= "https://api.igdb.com/v4/popularity_primitives"
 let popularityQuery 		  = "fields game_id,value,popularity_type; sort value desc; limit 150; where popularity_type = "
