@@ -10,6 +10,22 @@ const movieGenres 					= "https://api.themoviedb.org/3/genre/movie/list?language
 
 let token = null;
 
+function populateGenres(genres, data) {
+	const genreMap = new Map(
+		genres.map(genre => [genre.id, genre.name])
+	);
+
+	data.results.forEach(e => {
+		e.genres = e.genre_ids
+			.map(id => genreMap.get(id))
+			.filter(name => name !== undefined);
+
+		delete e.genre_ids;
+  });
+
+  return data;
+}
+
 async function getRequest(endpoint) {
 	return fetch(endpoint, {
 		method: "GET",
@@ -20,7 +36,7 @@ async function getRequest(endpoint) {
 	})
 }
 
-async function searchTMDB(env, type, query, adult, page) {
+async function searchTMDB(env, genres, type, query, adult, page) {
 	// Validate type -> "movie" or "show"
 	if (!type || typeof type !== "string" || (type !== "movie" && type !== "show"))
 		return ResponseError(400, "Invalid search type");
@@ -64,7 +80,7 @@ async function searchTMDB(env, type, query, adult, page) {
 	}
 }
 
-async function getTMDBfeed(env, type, page) {
+async function getTMDBfeed(env, genres, type, page) {
 	if (typeof type !== "string" || (type !== "show" && type !== "movie"))
 		return ResponseError(400, "Invalid type")
 
@@ -87,7 +103,10 @@ async function getTMDBfeed(env, type, page) {
 			return ResponseError(response.status, "API Error");
 		}
 
-		const data = await response.json();
+		let data = await response.json();
+		if (type === "movie") data = populateGenres(genres.movies, data)
+		else data = populateGenres(genres.tv, data)
+
 		return ResponseSuccess(data);
 	} catch (e) {
 		console.log(`[getFeed] Exception: ${e.message}`)
@@ -109,7 +128,7 @@ async function getTMDBgenres(env) {
 			console.log(`Movies, code: ${mg.status}, msg: ${msg_m}`)
 			console.log(`Shows, code: ${tg.status}, msg: ${msg_t}`)
 
-			return ResponseError(400, "API Error")
+			return null
 		}
 
 		const data_movies = await mg.json();
@@ -120,12 +139,12 @@ async function getTMDBgenres(env) {
 
 		const movies = data_movies.genres;
 		const tv 		 = data_tv.genres;
-		return ResponseSuccess({
+		return {
 			movies,
 			tv
-		})
+		}
 	} catch (e) {
 		console.log("[getGenres] Failed to get genres")
-		return ResponseError(500, "Server Error")
+		return null
 	}
 }

@@ -2,11 +2,19 @@ import { ResponseError } from "./responses.js";
 import { searchGames, getGamesFeed } from "./igdb.js"
 import { getTMDBfeed, searchTMDB, getTMDBgenres } from "./tmdb.js";
 
+const TMDB_GENRE_TTL = 24 * 3600 * 1000; // 24H in MS
+let cachedTMDBgenres = null;
+let lastCached       = 0;
+
 export default {
 	async fetch(request, env, _ctx) {
 		const { pathname } = new URL(request.url);
-		if (pathname === "/api/tmdb/genres" && request.method === "GET") return await getTMDBgenres(env)
+		const now 				 = Date.now();
 
+		// Not cached or expired
+		if (cachedTMDBgenres === null || now - lastCached >= TMDB_GENRE_TTL) {
+			try { cachedTMDBgenres = await getTMDBgenres(env); lastCached = now } catch (_e) {}
+		}
 
 		if (request.method !== "POST") return ResponseError(404, "Not Found");
 
@@ -27,9 +35,9 @@ export default {
 			if (!success) return ResponseError(429, "Rate limited")
 
 			if (pathname === "/api/tmdb/search")
-				return await searchTMDB(env, body.type, body.query, body.adult, body.page)
+				return await searchTMDB(env, cachedTMDBgenres,body.type, body.query, body.adult, body.page)
 			else
-				return await getTMDBfeed(env, body.type, body.page)
+				return await getTMDBfeed(env, cachedTMDBgenres, body.type, body.page)
 		}
 
 		return ResponseError(404, "Not Found");
