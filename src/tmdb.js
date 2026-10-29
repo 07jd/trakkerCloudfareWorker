@@ -72,7 +72,10 @@ async function searchTMDB(env, genres, type, query, adult, page) {
 			return ResponseError(response.status, "API Error")
 		}
 
-		const data = await response.json();
+		let data = await response.json();
+		if (type === "movie") data = populateGenres(genres.movies, data)
+		else data = populateGenres(genres.tv, data)
+
 		return ResponseSuccess(data)
 	} catch (e) {
 		console.log(`[searchTMDB] Exception: ${e.message}`)
